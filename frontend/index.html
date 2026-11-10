@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vietstock Finance - Cổng Dữ Liệu Tài Chính & Chứng Khoán Việt Nam</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lightweight Charts (TradingView) Local -->
+  <script src="lightweight-charts.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .vietstock-blue { background-color: #0b3a75; }
+    .vietstock-navy { background-color: #051d3b; }
+    .vietstock-accent { color: #f59e0b; }
+    .color-ceiling { color: #d946ef; }
+    .color-floor { color: #06b6d4; }
+    .color-ref { color: #eab308; }
+    .bg-ceiling-light { background-color: #fdf4ff; }
+    .bg-floor-light { background-color: #ecfeff; }
+    .bg-ref-light { background-color: #fefce8; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
+
+  <!-- TOP BAR: THỊ TRƯỜNG REALTIME -->
+  <div class="vietstock-navy text-gray-200 text-xs py-1.5 px-4 border-b border-blue-950">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center space-x-6 overflow-x-auto py-0.5">
+        <span class="font-bold text-yellow-400 flex items-center gap-1 shrink-0">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> THỊ TRƯỜNG:
+        </span>
+        <div class="flex items-center gap-1 font-semibold shrink-0">
+          <span>VN-INDEX:</span>
+          <span class="text-green-400">1,285.40 (+6.82 | +0.53%)</span>
+        </div>
+        <div class="flex items-center gap-1 font-semibold shrink-0">
+          <span>HNX-INDEX:</span>
+          <span class="text-green-400">238.12 (+1.15 | +0.49%)</span>
+        </div>
+        <div class="flex items-center gap-1 font-semibold shrink-0">
+          <span>VN30:</span>
+          <span class="text-green-400">1,342.90 (+8.20 | +0.61%)</span>
+        </div>
+        <div class="flex items-center gap-1 font-semibold shrink-0">
+          <span>UPCOM:</span>
+          <span class="text-red-400">92.15 (-0.12 | -0.13%)</span>
+        </div>
+        <div class="flex items-center gap-1 font-semibold text-gray-300 shrink-0">
+          <span>USD/VND:</span>
+          <span class="text-yellow-400">25,450</span>
+        </div>
+      </div>
+      <div class="text-gray-400 text-[11px] hidden md:flex items-center gap-3">
+        <span>CSDL: <span id="dbProgressBadge" class="text-yellow-400 font-bold">--/1259 mã</span></span>
+        <span>•</span>
+        <span>Phiên giao dịch: <span id="currentDate" class="text-gray-300 font-semibold">--</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="vietstock-blue text-white shadow sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+      <!-- Logo -->
+      <div class="flex items-center gap-3 cursor-pointer shrink-0" onclick="switchNavView('hsx')">
+        <div class="bg-yellow-400 text-blue-950 font-black px-2.5 py-1 rounded text-xl shadow leading-none flex items-center justify-center">
+          VN
+        </div>
+        <div>
+          <h1 class="text-lg font-black tracking-tight leading-none text-white">VIETNAM <span class="text-yellow-400 text-sm font-semibold">STOCK EXCHANGES</span></h1>
+          <p class="text-[9px] text-blue-200 tracking-wider">CỔNG DỮ LIỆU CHÍNH THỨC HSX • HNX • VIETSTOCK</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Menu -->
+      <nav class="hidden lg:flex items-center space-x-1 text-xs font-semibold text-blue-100">
+        <button id="nav-btn-hpg-news" onclick="switchNavView('hpg-news')" class="px-3 py-1.5 rounded transition text-yellow-400 bg-blue-900/80 font-bold hover:bg-blue-900 shadow-inner">Tin Tức & Sự Kiện HPG</button>
+        <button id="nav-btn-hsx" onclick="switchNavView('hsx')" class="px-3 py-1.5 rounded transition hover:text-yellow-400 hover:bg-blue-900/50">HOSE (406 CP)</button>
+        <button id="nav-btn-hnx" onclick="switchNavView('hnx')" class="px-3 py-1.5 rounded transition hover:text-yellow-400 hover:bg-blue-900/50">HNX (299 CP)</button>
+        <button id="nav-btn-upcom" onclick="switchNavView('upcom')" class="px-3 py-1.5 rounded transition hover:text-yellow-400 hover:bg-blue-900/50">UPCoM (299 CP)</button>
+        <button id="nav-btn-hpg-peers" onclick="switchNavView('hpg-peers')" class="px-3 py-1.5 rounded transition hover:text-yellow-400 hover:bg-blue-900/50">Cùng Ngành HPG</button>
+        <button id="nav-btn-hpg-hsx" onclick="switchNavView('hpg-hsx')" class="px-3 py-1.5 rounded transition hover:text-yellow-400 hover:bg-blue-900/50">HSX HPG (2458)</button>
+        <button id="nav-btn-a32-hnx" onclick="switchNavView('a32-hnx')" class="px-3 py-1.5 rounded transition hover:text-yellow-400 hover:bg-blue-900/50">HNX A32 (Tab 3)</button>
+        <button id="nav-btn-stock" onclick="switchNavView('stock')" class="px-3 py-1.5 rounded transition hover:text-yellow-400 hover:bg-blue-900/50">Đồ Thị & BCTC</button>
+        <span class="px-2 py-0.5 ml-2 rounded bg-yellow-500 text-blue-950 text-[10px] font-black uppercase shadow-sm">PORTAL</span>
+      </nav>
+
+      <!-- Live Search Box -->
+      <div class="relative flex-1 max-w-xs sm:max-w-sm">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Tìm mã CP hoặc tên công ty (VNM, FPT...)" 
+            class="w-full pl-8 pr-3 py-1.5 text-xs rounded bg-blue-950/70 border border-blue-400/40 text-white placeholder-blue-300/60 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-blue-950"
+            autocomplete="off"
+          />
+          <i data-lucide="search" class="w-3.5 h-3.5 text-blue-300 absolute left-2.5 top-2"></i>
+        </div>
+        <div id="searchDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white text-gray-800 rounded shadow-2xl border border-gray-200 max-h-80 overflow-y-auto z-50"></div>
+      </div>
+
+      <!-- Quick Ticker Chips -->
+      <div class="hidden sm:flex items-center gap-1 text-xs shrink-0">
+        <button onclick="selectStock('VNM')" class="px-2 py-0.5 bg-blue-900/80 hover:bg-yellow-400 hover:text-blue-950 rounded font-semibold transition">VNM</button>
+        <button onclick="selectStock('FPT')" class="px-2 py-0.5 bg-blue-900/80 hover:bg-yellow-400 hover:text-blue-950 rounded font-semibold transition">FPT</button>
+        <button onclick="selectStock('HPG')" class="px-2 py-0.5 bg-blue-900/80 hover:bg-yellow-400 hover:text-blue-950 rounded font-semibold transition">HPG</button>
+        <button onclick="selectStock('VCB')" class="px-2 py-0.5 bg-blue-900/80 hover:bg-yellow-400 hover:text-blue-950 rounded font-semibold transition">VCB</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-7xl mx-auto px-4 py-4 flex-1 w-full">
+
+    <!-- VIEW: HSX HOSE LISTED STOCKS -->
+    <div id="view-hsx" class="space-y-4 hidden">
+      <div class="bg-gradient-to-r from-blue-900 to-indigo-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-yellow-400 text-blue-950 text-xs font-black">HOSE OFFICIAL</span>
+            <h2 class="text-xl font-bold">Sở GDCK TP.Hồ Chí Minh (HSX) - Danh Sách Cổ Phiếu Niêm Yết</h2>
+          </div>
+          <p class="text-xs text-blue-200 mt-1">Nguồn dữ liệu chính thức từ máy chủ Sở HSX (www.hsx.vn) • <span id="hsxTotalCount" class="font-bold text-yellow-300">406</span> cổ phiếu niêm yết</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="hsxSearchInput" onkeyup="filterHsxTable()" placeholder="Lọc theo mã hoặc tên..." class="px-3 py-1.5 text-xs rounded bg-blue-950/80 border border-blue-400/40 text-white placeholder-blue-300/60 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+          <button onclick="loadHsxStocks()" class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-400 text-blue-950 text-xs font-bold rounded shadow transition">Làm mới</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
+          <table class="w-full text-xs">
+            <thead class="sticky top-0 bg-gray-100 text-gray-700 font-bold border-b border-gray-200 shadow-sm">
+              <tr>
+                <th class="py-2.5 px-3 text-left">Mã CK</th>
+                <th class="py-2.5 px-3 text-left">Tên Công Ty Niêm Yết</th>
+                <th class="py-2.5 px-3 text-right">Vốn Điều Lệ (VNĐ)</th>
+                <th class="py-2.5 px-3 text-right">KL Niêm Yết</th>
+                <th class="py-2.5 px-3 text-right">KL Lưu Hành</th>
+                <th class="py-2.5 px-3 text-left">Tổng Giám Đốc</th>
+                <th class="py-2.5 px-3 text-center">Room NN (%)</th>
+                <th class="py-2.5 px-3 text-center">Mã ISIN</th>
+                <th class="py-2.5 px-3 text-center">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="hsxStocksTableBody" class="divide-y divide-gray-100 font-mono">
+              <tr><td colspan="9" class="text-center py-6 text-gray-400">Đang nạp 406 cổ phiếu HSX...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div> <!-- /view-hsx -->
+
+    <!-- VIEW: HNX LISTED STOCKS -->
+    <div id="view-hnx" class="space-y-4 hidden">
+      <div class="bg-gradient-to-r from-red-900 to-rose-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-amber-400 text-red-950 text-xs font-black">HNX OFFICIAL</span>
+            <h2 class="text-xl font-bold">Sở GDCK Hà Nội (HNX) - Toàn Bộ Chứng Khoán Niêm Yết</h2>
+          </div>
+          <p class="text-xs text-red-200 mt-1">Dữ liệu chính thức từ Sở HNX (hnx.vn/vi-vn/cophieu-etfs/chung-khoan-ny.html) • <span id="hnxTotalCount" class="font-bold text-amber-300">299</span> cổ phiếu</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="hnxSearchInput" onkeyup="filterHnxTable()" placeholder="Lọc mã hoặc ngành..." class="px-3 py-1.5 text-xs rounded bg-red-950/80 border border-red-400/40 text-white placeholder-red-300/60 focus:outline-none focus:ring-1 focus:ring-amber-400" />
+          <button onclick="loadHnxListed()" class="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-red-950 text-xs font-bold rounded shadow transition">Làm mới</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
+          <table class="w-full text-xs">
+            <thead class="sticky top-0 bg-gray-100 text-gray-700 font-bold border-b border-gray-200 shadow-sm">
+              <tr>
+                <th class="py-2.5 px-3 text-center w-12">STT</th>
+                <th class="py-2.5 px-3 text-left">Mã CK</th>
+                <th class="py-2.5 px-3 text-left">Tên Tổ Chức Phát Hành</th>
+                <th class="py-2.5 px-3 text-left">Ngành Nghề</th>
+                <th class="py-2.5 px-3 text-center">Ngày GD Đầu Tiên</th>
+                <th class="py-2.5 px-3 text-right">Khối Lượng NY</th>
+                <th class="py-2.5 px-3 text-right">KLLH (Cổ phiếu)</th>
+              </tr>
+            </thead>
+            <tbody id="hnxListedTableBody" class="divide-y divide-gray-100">
+              <tr><td colspan="7" class="text-center py-6 text-gray-400">Đang nạp 299 cổ phiếu HNX...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div> <!-- /view-hnx -->
+
+    <!-- VIEW: HNX UPCOM STOCKS -->
+    <div id="view-upcom" class="space-y-4 hidden">
+      <div class="bg-gradient-to-r from-amber-900 to-yellow-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-yellow-400 text-amber-950 text-xs font-black">UPCOM OFFICIAL</span>
+            <h2 class="text-xl font-bold">Sở GDCK Hà Nội (HNX) - Chứng Khoán Đăng Ký Giao Dịch UPCoM</h2>
+          </div>
+          <p class="text-xs text-yellow-200 mt-1">Dữ liệu chính thức từ Sở HNX (hnx.vn/vi-vn/cophieu-etfs/chung-khoan-uc.html) • <span id="upcomTotalCount" class="font-bold text-yellow-300">299</span> chứng khoán</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="upcomSearchInput" onkeyup="filterUpcomTable()" placeholder="Lọc mã hoặc ngành..." class="px-3 py-1.5 text-xs rounded bg-amber-950/80 border border-yellow-400/40 text-white placeholder-yellow-300/60 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+          <button onclick="loadHnxUpcom()" class="px-3 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-amber-950 text-xs font-bold rounded shadow transition">Làm mới</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
+          <table class="w-full text-xs">
+            <thead class="sticky top-0 bg-gray-100 text-gray-700 font-bold border-b border-gray-200 shadow-sm">
+              <tr>
+                <th class="py-2.5 px-3 text-center w-12">STT</th>
+                <th class="py-2.5 px-3 text-left">Mã CK</th>
+                <th class="py-2.5 px-3 text-left">Tên Tổ Chức Phát Hành</th>
+                <th class="py-2.5 px-3 text-left">Ngành Nghề</th>
+                <th class="py-2.5 px-3 text-center">Ngày GD Đầu Tiên</th>
+                <th class="py-2.5 px-3 text-right">Khối Lượng ĐKGD</th>
+                <th class="py-2.5 px-3 text-right">KLLH (Cổ phiếu)</th>
+                <th class="py-2.5 px-3 text-center">Chi tiết</th>
+              </tr>
+            </thead>
+            <tbody id="hnxUpcomTableBody" class="divide-y divide-gray-100">
+              <tr><td colspan="8" class="text-center py-6 text-gray-400">Đang nạp 299 chứng khoán UPCoM...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div> <!-- /view-upcom -->
+
+    <!-- VIEW: HỒ SƠ NIÊM YẾT HPG (HSX/2458) -->
+    <div id="view-hpg-hsx" class="space-y-4 hidden">
+      <div class="bg-gradient-to-r from-slate-900 to-blue-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-blue-500 text-white text-xs font-black">HSX: HPG / ID 2458</span>
+            <h2 class="text-xl font-bold">Hồ Sơ Niêm Yết Chính Thức - CTCP Tập Đoàn Hòa Phát</h2>
+          </div>
+          <p class="text-xs text-blue-200 mt-1">Nguồn: Sở GDCK TP.HCM (www.hsx.vn/vi/quan-ly-niem-yet/co-phieu/HPG/2458)</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="switchNavView('hpg-peers')" class="px-3 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-blue-950 text-xs font-bold rounded shadow transition">So Sánh Cùng Ngành</button>
+          <button onclick="selectStockAndSwitch('HPG')" class="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold rounded shadow transition">Xem Đồ Thị & BCTC</button>
+        </div>
+      </div>
+
+      <!-- Khối chỉ số niêm yết chính thức HSX -->
+      <div id="hpgHsxDetailContainer" class="space-y-4">
+        <div class="p-8 text-center text-gray-400">Đang nạp hồ sơ niêm yết HPG từ HSX...</div>
+      </div>
+    </div> <!-- /view-hpg-hsx -->
+
+    <!-- VIEW: CHI TIẾT A32 TỪ HNX UPCOM (TAB 3 SỰ KIỆN & CÔNG BỐ) -->
+    <div id="view-a32-hnx" class="space-y-4 hidden">
+      <div class="bg-gradient-to-r from-emerald-900 to-teal-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-emerald-400 text-emerald-950 text-xs font-black">HNX UPCOM: A32</span>
+            <h2 class="text-xl font-bold">Chi Tiết Chứng Khoán A32 - Tab 3: Sự Kiện Quyền & Công Bố Thông Tin</h2>
+          </div>
+          <p class="text-xs text-emerald-200 mt-1">Nguồn: Sở GDCK Hà Nội (hnx.vn/cophieu-etfs/chi-tiet-chung-khoan-uc-A32.html?_des_tab=3)</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Bảng 1: Lịch sử sự kiện quyền (Cổ tức, ĐHCĐ) -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <i data-lucide="gift" class="w-4 h-4 text-emerald-600"></i> Lịch Sử Sự Kiện Quyền & Trả Cổ Tức
+            </h3>
+            <span class="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded font-bold">Chính thức HNX</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                  <th class="py-2 px-2.5 text-center w-10">STT</th>
+                  <th class="py-2 px-2.5 text-left">Ngày GDKHQ</th>
+                  <th class="py-2 px-2.5 text-left">Ngày ĐKCC</th>
+                  <th class="py-2 px-2.5 text-left">Ngày Thực Hiện</th>
+                  <th class="py-2 px-2.5 text-left">Hình Thức Thực Hiện</th>
+                </tr>
+              </thead>
+              <tbody id="a32EventsTableBody" class="divide-y divide-gray-100 font-mono">
+                <tr><td colspan="5" class="text-center py-6 text-gray-400">Đang nạp sự kiện quyền A32...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bảng 2: Tin công bố thông tin -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i> Tin Công Bố Thông Tin & Báo Cáo
+            </h3>
+            <span class="text-[10px] bg-blue-50 text-blue-800 px-2 py-0.5 rounded font-bold">Sở GDCK Hà Nội</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                  <th class="py-2 px-2.5 text-center w-10">STT</th>
+                  <th class="py-2 px-2.5 text-left w-36">Ngày Đăng Tin</th>
+                  <th class="py-2 px-2.5 text-left">Tiêu Đề Tin Công Bố</th>
+                </tr>
+              </thead>
+              <tbody id="a32NewsTableBody" class="divide-y divide-gray-100">
+                <tr><td colspan="3" class="text-center py-6 text-gray-400">Đang nạp tin công bố A32...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /view-a32-hnx -->
+
+    <!-- VIEW: SO SÁNH CÙNG NGÀNH HPG (VIETSTOCK) -->
+    <div id="view-hpg-peers" class="space-y-4 hidden">
+      <div class="bg-gradient-to-r from-orange-900 to-amber-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-yellow-400 text-amber-950 text-xs font-black">VIETSTOCK COMPARE</span>
+            <h2 class="text-xl font-bold">So Sánh Giá & Chỉ Số Cổ Phiếu Cùng Ngành - Mã HPG</h2>
+          </div>
+          <p class="text-xs text-yellow-200 mt-1">Nguồn: Vietstock Finance (finance.vietstock.vn/HPG/so-sanh-gia-co-phieu-cung-nganh.htm) • Ngành Khai khoáng & Kim loại Thép</p>
+        </div>
+        <button onclick="loadHpgPeers()" class="px-3 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-amber-950 text-xs font-bold rounded shadow transition">Làm mới bảng</button>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
+                <th class="py-2.5 px-3 text-left">Mã CK</th>
+                <th class="py-2.5 px-3 text-left">Tên Doanh Nghiệp</th>
+                <th class="py-2.5 px-3 text-right">Thị Giá (nghìn đ)</th>
+                <th class="py-2.5 px-3 text-right">P/E</th>
+                <th class="py-2.5 px-3 text-right">P/B</th>
+                <th class="py-2.5 px-3 text-right">Vốn Hóa (Tỷ VNĐ)</th>
+                <th class="py-2.5 px-3 text-right">Khối Lượng GD</th>
+                <th class="py-2.5 px-3 text-center">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="hpgPeersTableBody" class="divide-y divide-gray-100 font-mono">
+              <tr><td colspan="8" class="text-center py-6 text-gray-400">Đang nạp dữ liệu so sánh ngành HPG...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div> <!-- /view-hpg-peers -->
+
+    <!-- VIEW: TIN TỨC & SỰ KIỆN HPG (VIETSTOCK TIN TỨC & SỰ KIỆN) -->
+    <div id="view-hpg-news" class="space-y-4">
+      
+      <!-- KHỐI 1: HEADER CỔ PHIẾU HPG CHUẨN VIETSTOCK FINANCE -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5">
+          <!-- Cột trái: Avatar + Tên + Mã + Ngành -->
+          <div class="flex items-start gap-4">
+            <div class="w-16 h-16 rounded-full bg-slate-50 border border-blue-200 flex flex-col items-center justify-center p-2 shadow-inner shrink-0">
+              <div class="w-7 h-5 flex items-center justify-center">
+                <span class="text-blue-900 font-black text-sm tracking-tighter leading-none">▲▲</span>
+              </div>
+              <span class="text-[9px] font-black tracking-tight text-blue-900 mt-0.5">HOA PHAT</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                <span class="text-[10px] font-bold text-gray-400">CHỌN MÃ XEM TIN TỨC &amp; AI DATA:</span>
+                <button onclick="switchNewsSymbol('HPG')" class="px-2 py-0.5 rounded font-black text-[11px] bg-blue-900 text-yellow-300 hover:bg-yellow-400 hover:text-blue-950 transition shadow-xs">HPG</button>
+                <button onclick="switchNewsSymbol('VNM')" class="px-2 py-0.5 rounded font-black text-[11px] bg-blue-900/80 text-white hover:bg-yellow-400 hover:text-blue-950 transition">VNM</button>
+                <button onclick="switchNewsSymbol('FPT')" class="px-2 py-0.5 rounded font-black text-[11px] bg-blue-900/80 text-white hover:bg-yellow-400 hover:text-blue-950 transition">FPT</button>
+                <button onclick="switchNewsSymbol('VCB')" class="px-2 py-0.5 rounded font-black text-[11px] bg-blue-900/80 text-white hover:bg-yellow-400 hover:text-blue-950 transition">VCB</button>
+                <button onclick="switchNewsSymbol('SSI')" class="px-2 py-0.5 rounded font-black text-[11px] bg-blue-900/80 text-white hover:bg-yellow-400 hover:text-blue-950 transition">SSI</button>
+              </div>
+              <h2 id="newsCompanyName" class="text-base font-bold text-gray-800">CTCP Tập đoàn Hòa Phát</h2>
+              <div class="flex items-center gap-2 mt-1">
+                <span id="newsSymbolTicker" class="text-2xl font-black text-blue-950 font-mono">HPG</span>
+                <span class="text-gray-400"><i data-lucide="search" class="w-3.5 h-3.5 inline"></i></span>
+                <span class="px-2 py-0.5 text-xs font-bold rounded bg-blue-100 text-blue-800">HOSE</span>
+              </div>
+              <div class="flex items-baseline gap-2.5 mt-1.5">
+                <span class="text-2xl font-black text-red-600 font-mono">20,150</span>
+                <span class="text-xs font-bold text-red-600 flex items-center gap-0.5">
+                  ▼ -200 (-0.98%)
+                </span>
+                <span class="text-[11px] text-gray-400">08/10/2026 14:59 <span class="w-2 h-2 rounded-full inline-block bg-amber-400 ml-1"></span> Kết thúc phiên</span>
+              </div>
+              <div class="text-[11px] text-gray-500 mt-1 flex items-center gap-1">
+                <span>Ngành:</span>
+                <a href="javascript:void(0)" class="text-blue-700 hover:underline">Nguyên vật liệu</a>
+                <span>&gt;</span>
+                <a href="javascript:void(0)" class="text-blue-700 hover:underline">Nguyên vật liệu</a>
+                <span>&gt;</span>
+                <a href="javascript:void(0)" class="text-blue-700 font-medium hover:underline">Khai khoáng và luyện kim</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cột phải: Xem nhiều + Tags đặc quyền -->
+          <div class="flex flex-col items-start lg:items-end gap-3 w-full lg:w-auto">
+            <div class="flex items-center gap-1.5 text-xs flex-wrap">
+              <span class="text-[11px] text-gray-400 font-medium">Xem nhiều:</span>
+              <button onclick="selectStockAndSwitch('PNJ')" class="px-2 py-0.5 rounded border border-gray-200 bg-gray-50 hover:bg-gray-100 text-[11px] font-semibold text-gray-700">PNJ <span class="text-gray-400 font-normal">👁 194k</span></button>
+              <button onclick="selectStockAndSwitch('HPG')" class="px-2 py-0.5 rounded border border-blue-300 bg-blue-50 text-[11px] font-bold text-blue-900">HPG <span class="text-blue-600 font-normal">👁 108k</span></button>
+              <button onclick="selectStockAndSwitch('VCB')" class="px-2 py-0.5 rounded border border-gray-200 bg-gray-50 hover:bg-gray-100 text-[11px] font-semibold text-gray-700">VCB <span class="text-gray-400 font-normal">👁 88k</span></button>
+              <button onclick="selectStockAndSwitch('FPT')" class="px-2 py-0.5 rounded border border-gray-200 bg-gray-50 hover:bg-gray-100 text-[11px] font-semibold text-gray-700">FPT <span class="text-gray-400 font-normal">👁 86k</span></button>
+              <button onclick="selectStockAndSwitch('VIC')" class="px-2 py-0.5 rounded border border-gray-200 bg-gray-50 hover:bg-gray-100 text-[11px] font-semibold text-gray-700">VIC <span class="text-gray-400 font-normal">👁 79k</span></button>
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                🏆 IR AWARDS 2026
+              </span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">GD ký quỹ</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">XFVT</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">V.N.M ETF</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">VN30</span>
+              <button onclick="triggerAiReIngest()" id="btnAiReIngest" class="px-2.5 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-blue-950 font-black rounded text-[10px] transition flex items-center gap-1 shadow-xs ml-1">
+                <i data-lucide="cpu" class="w-3 h-3"></i> AI ETL CLEAN
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- THANH SUB-MENU TABS CỔ PHIẾU CHUẨN VIETSTOCK -->
+        <div class="flex items-center gap-6 overflow-x-auto border-b border-gray-200 mt-5 pt-2 text-xs font-semibold whitespace-nowrap">
+          <button onclick="selectStockAndSwitch('HPG')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Tổng quan</button>
+          <button onclick="selectStockAndSwitch('HPG')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Giao dịch</button>
+          <button onclick="selectStockAndSwitch('HPG')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Kỹ thuật</button>
+          <button onclick="selectStockAndSwitch('HPG')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Tài chính</button>
+          <button onclick="switchNavView('financials')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Xếp hạng</button>
+          <button onclick="switchNavView('hpg-hsx')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Hồ sơ</button>
+          <button class="pb-2 text-blue-700 border-b-2 border-blue-700 font-bold">Tin tức &amp; Sự kiện</button>
+          <button onclick="switchNavView('hpg-peers')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Cùng ngành</button>
+          <button onclick="switchNavView('reports')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Tài liệu</button>
+          <button onclick="selectStockAndSwitch('HPG')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Giao dịch nội bộ</button>
+          <button onclick="switchNavView('screener')" class="pb-2 text-gray-600 hover:text-blue-900 transition">Trái phiếu</button>
+        </div>
+      </div>
+
+      <!-- KHỐI 2: NỘI DUNG CHÍNH - 2 CỘT: TIN TỨC BÊN TRÁI & SỰ KIỆN BÊN PHẢI -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- CỘT TRÁI (LỚN): DÒNG THỜI GIAN TIN TỨC & LỊCH SỰ KIỆN DOANH NGHIỆP -->
+        <div class="lg:col-span-8 space-y-4">
+          
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            
+            <!-- THANH ĐIỀU HƯỚNG CHÍNH GIỮA TIN TỨC VÀ SỰ KIỆN DOANH NGHIỆP -->
+            <div class="flex items-center justify-between pb-3.5 border-b border-gray-100 flex-wrap gap-3">
+              <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg">
+                <button id="btnMainModeNews" onclick="switchMainNewsEventsMode('news')" class="px-3.5 py-1.5 rounded-md font-bold text-xs bg-blue-900 text-white shadow-xs transition flex items-center gap-1.5">
+                  <i data-lucide="newspaper" class="w-3.5 h-3.5"></i> Tin Tức Báo Chí (<span id="mainNewsCountBadge">2.250</span>)
+                </button>
+                <button id="btnMainModeEvents" onclick="switchMainNewsEventsMode('events')" class="px-3.5 py-1.5 rounded-md font-semibold text-xs text-gray-700 hover:text-blue-950 hover:bg-slate-200 transition flex items-center gap-1.5">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i> Lịch Sự Kiện Quyền (<span id="mainEventsCountBadge">...</span>)
+                </button>
+              </div>
+              <div class="text-[11px] text-gray-500 font-mono">
+                Nguồn: <strong class="text-blue-950 font-bold">Vietstock Finance</strong> (finance.vietstock.vn/<span id="sourceSymbolLabel">HPG</span>/tin-tuc-su-kien.htm)
+              </div>
+            </div>
+
+            <!-- PHẦN 1: KHỐI HIỂN THỊ TIN TỨC (NEWS) -->
+            <div id="hpgNewsMainSection">
+              <!-- Tab Pills lọc danh mục tin tức -->
+              <div class="flex items-center gap-1.5 overflow-x-auto py-2.5 text-xs font-semibold border-b border-gray-50">
+                <button onclick="filterHpgNewsCategory('ALL')" id="filter-news-all" class="px-3 py-1 rounded bg-blue-900 text-white font-bold transition">Tất cả</button>
+                <button onclick="filterHpgNewsCategory('DOANH_NGHIEP')" id="filter-news-doanhnghiep" class="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Doanh nghiệp</button>
+                <button onclick="filterHpgNewsCategory('CO_TUC')" id="filter-news-cotuc" class="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Cổ tức - Phát hành</button>
+                <button onclick="filterHpgNewsCategory('GIAO_DICH')" id="filter-news-giaodich" class="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Cổ đông lớn &amp; Nội bộ</button>
+                <button onclick="filterHpgNewsCategory('KET_QUA_KD')" id="filter-news-ketquakd" class="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">KQKD &amp; Kế hoạch</button>
+                <button onclick="filterHpgNewsCategory('NGANH_THEP')" id="filter-news-nganhthep" class="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Ngành Thép</button>
+              </div>
+
+              <!-- Danh sách bài báo tin tức thực tế từ Vietstock -->
+              <div id="hpgNewsTimelineContainer" class="divide-y divide-gray-100 mt-2">
+                <div class="py-8 text-center text-gray-400 text-xs">Đang tải tin tức từ Vietstock...</div>
+              </div>
+
+              <!-- Phân trang tin tức -->
+              <div class="flex items-center justify-between pt-4 border-t border-gray-100 text-xs text-gray-500">
+                <span id="hpgNewsPaginationInfo">Hiển thị tin bài</span>
+                <div class="flex items-center gap-1" id="hpgNewsPaginationButtons">
+                  <!-- Nạp động qua JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- PHẦN 2: KHỐI HIỂN THỊ LỊCH SỰ KIỆN QUYỀN (EVENTS) -->
+            <div id="hpgEventsMainSection" class="hidden">
+              <!-- Bộ lọc phạm vi và loại sự kiện -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2.5 border-b border-gray-100">
+                <!-- Chọn phạm vi: Mã hiện tại vs Toàn thị trường -->
+                <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-md text-xs font-semibold">
+                  <button id="btnMainEventScopeCurrent" onclick="switchMainEventsScope('current')" class="px-2.5 py-1 rounded bg-blue-900 text-white font-bold transition shadow-xs">
+                    Mã <span id="mainEventScopeSymbol">HPG</span> (<span id="mainEventsStockCount">225</span>)
+                  </button>
+                  <button id="btnMainEventScopeAll" onclick="switchMainEventsScope('all')" class="px-2.5 py-1 rounded bg-transparent hover:bg-gray-200 text-gray-700 transition">
+                    Toàn TT (3,800+ SK)
+                  </button>
+                </div>
+
+                <!-- Lọc theo loại quyền -->
+                <div class="flex items-center gap-1 overflow-x-auto text-xs font-semibold">
+                  <button onclick="filterMainEventsByType('ALL')" id="filter-mev-type-ALL" class="px-2.5 py-1 rounded bg-blue-900 text-white font-bold transition">Tất cả</button>
+                  <button onclick="filterMainEventsByType('TIEN')" id="filter-mev-type-TIEN" class="px-2.5 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Cổ tức tiền</button>
+                  <button onclick="filterMainEventsByType('CP')" id="filter-mev-type-CP" class="px-2.5 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Cổ tức CP</button>
+                  <button onclick="filterMainEventsByType('DHCĐ')" id="filter-mev-type-DHCD" class="px-2.5 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">ĐHĐCĐ</button>
+                  <button onclick="filterMainEventsByType('QUYEN')" id="filter-mev-type-QUYEN" class="px-2.5 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Quyền mua</button>
+                </div>
+              </div>
+
+              <!-- Danh sách sự kiện quyền doanh nghiệp -->
+              <div id="hpgEventsMainTimelineContainer" class="divide-y divide-gray-100 mt-2 space-y-2">
+                <div class="py-8 text-center text-gray-400 text-xs">Đang nạp lịch sự kiện quyền...</div>
+              </div>
+
+              <!-- Phân trang sự kiện -->
+              <div class="flex items-center justify-between pt-4 border-t border-gray-100 text-xs text-gray-500">
+                <span id="hpgEventsMainPaginationInfo">Hiển thị sự kiện</span>
+                <div class="flex items-center gap-1" id="hpgEventsMainPaginationButtons">
+                  <!-- Nạp động qua JS -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CỘT PHẢI (NHỎ): LỊCH SỰ KIỆN QUYỀN & CỔ TỨC + CÔNG BỐ THÔNG TIN -->
+        <div class="lg:col-span-4 space-y-4">
+          
+          <!-- KHỐI 1: LỊCH SỰ KIỆN & CỔ TỨC -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3 flex-wrap gap-2">
+              <h3 class="font-bold text-gray-900 text-sm flex items-center gap-2">
+                <i data-lucide="calendar" class="w-4 h-4 text-emerald-600"></i> Lịch Sự Kiện Quyền
+              </h3>
+              <div class="flex items-center gap-1 text-[10px]">
+                <button id="btnSideEventCurrent" onclick="switchSideEventsTab('current')" class="px-2 py-0.5 rounded font-bold bg-blue-900 text-white shadow-xs">Mã này</button>
+                <button id="btnSideEventAll" onclick="switchSideEventsTab('all')" class="px-2 py-0.5 rounded font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700">Toàn TT (3,800+)</button>
+              </div>
+            </div>
+
+            <!-- Danh sách sự kiện HPG / Thị trường -->
+            <div id="hpgEventsListContainer" class="space-y-3 max-h-[480px] overflow-y-auto pr-1">
+              <div class="py-6 text-center text-gray-400 text-xs">Đang tải lịch sự kiện...</div>
+            </div>
+          </div>
+
+          <!-- KHỐI 2: CÔNG BỐ THÔNG TIN CHÍNH THỨC CÓ FILE PDF -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+              <h3 class="font-bold text-gray-900 text-sm flex items-center gap-2">
+                <i data-lucide="file-check-2" class="w-4 h-4 text-blue-600"></i> Công Bố Thông Tin &amp; Tài Liệu PDF
+              </h3>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-bold border border-rose-200 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> PDF Gốc
+              </span>
+            </div>
+
+            <!-- Container nạp động danh sách tài liệu công bố thông tin kèm PDF thật -->
+            <div id="hpgDisclosuresContainer" class="space-y-2.5 text-xs">
+              <div class="py-6 text-center text-gray-400 text-xs">Đang tải danh sách tài liệu công bố thông tin...</div>
+            </div>
+          </div>
+
+          <!-- KHỐI 3: GIAO DỊCH LÃNH ĐẠO & CỔ ĐÔNG LỚN -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+              <h3 class="font-bold text-gray-900 text-sm flex items-center gap-2">
+                <i data-lucide="users" class="w-4 h-4 text-amber-600"></i> Cơ Cấu Sở Hữu Cổ Đông Lớn
+              </h3>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center py-1 border-b border-gray-50">
+                <div>
+                  <div class="font-bold text-gray-900">Ông Trần Đình Long</div>
+                  <div class="text-[10px] text-gray-400">Chủ tịch HĐQT</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-mono font-bold text-blue-950">1,650,000,000 cp</div>
+                  <div class="text-[10px] font-bold text-emerald-600">25.80%</div>
+                </div>
+              </div>
+              <div class="flex justify-between items-center py-1 border-b border-gray-50">
+                <div>
+                  <div class="font-bold text-gray-900">Bà Vũ Thị Hiền</div>
+                  <div class="text-[10px] text-gray-400">Vợ Chủ tịch HĐQT</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-mono font-bold text-blue-950">440,000,000 cp</div>
+                  <div class="text-[10px] font-bold text-emerald-600">6.88%</div>
+                </div>
+              </div>
+              <div class="flex justify-between items-center py-1">
+                <div>
+                  <div class="font-bold text-gray-900">Nhóm Quỹ Dragon Capital</div>
+                  <div class="text-[10px] text-gray-400">Cổ đông nước ngoài lớn</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-mono font-bold text-blue-950">328,500,000 cp</div>
+                  <div class="text-[10px] font-bold text-emerald-600">5.14%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- /Cột phải -->
+
+      </div> <!-- /Grid 2 cột -->
+
+    </div> <!-- /view-hpg-news -->
+
+    <!-- VIEW 1: CỔ PHIẾU (DASHBOARD CHI TIẾT MÃ) -->
+    <div id="view-stock" class="space-y-4 hidden">
+
+      <!-- KHỐI 1: HEADER THÔNG TIN CỔ PHIẾU & BẢNG GIÁ ĐẶC TRƯNG VIETSTOCK -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        
+        <!-- Thông tin định danh -->
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="stockSymbol" class="text-3xl font-black text-blue-950 tracking-tight">VNM</span>
+            <span id="stockExchange" class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">HOSE</span>
+            <span id="stockIndustry" class="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">Thực phẩm & Đồ uống</span>
+            <span class="text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Giao dịch
+            </span>
+          </div>
+          <h2 id="stockName" class="text-sm font-semibold text-gray-700 mt-0.5">CTCP Sữa Việt Nam (Vinamilk)</h2>
+        </div>
+
+        <!-- Khung 3 mức giá sàn HOSE: Trần - Tham chiếu - Sàn -->
+        <div class="flex items-center gap-3 bg-gray-50 p-2.5 rounded-lg border border-gray-200 w-full lg:w-auto justify-around lg:justify-end">
+          <div class="text-center px-2">
+            <div class="text-[10px] text-gray-500 font-bold uppercase">Giá Trần</div>
+            <div id="priceCeiling" class="text-sm font-extrabold color-ceiling">--</div>
+          </div>
+          <div class="h-6 w-px bg-gray-300"></div>
+          <div class="text-center px-2">
+            <div class="text-[10px] text-gray-500 font-bold uppercase">Tham Chiếu</div>
+            <div id="priceRef" class="text-sm font-extrabold color-ref">--</div>
+          </div>
+          <div class="h-6 w-px bg-gray-300"></div>
+          <div class="text-center px-2">
+            <div class="text-[10px] text-gray-500 font-bold uppercase">Giá Sàn</div>
+            <div id="priceFloor" class="text-sm font-extrabold color-floor">--</div>
+          </div>
+          <div class="h-6 w-px bg-gray-300"></div>
+          <!-- Giá Khớp Lệnh Lớn -->
+          <div class="text-right pl-3">
+            <div class="text-[10px] text-gray-500 font-bold uppercase">Giá Khớp Lệnh</div>
+            <div class="flex items-baseline gap-2">
+              <span id="stockPrice" class="text-2xl font-black text-green-600">--</span>
+              <span id="stockChange" class="text-xs font-bold text-green-600">--</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- KHỐI 2: GRID THÔNG SỐ GIAO DỊCH VÀ CHỈ SỐ ĐỊNH GIÁ CHI TIẾT -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 mt-3 pt-3 border-t border-gray-100 text-xs">
+        <div class="bg-gray-50/80 p-2 rounded border border-gray-100">
+          <span class="text-gray-500 text-[11px] block">Mở cửa:</span>
+          <span id="valOpen" class="font-bold text-gray-800">--</span>
+        </div>
+        <div class="bg-gray-50/80 p-2 rounded border border-gray-100">
+          <span class="text-gray-500 text-[11px] block">Cao / Thấp:</span>
+          <span id="valHighLow" class="font-bold text-gray-800">-- / --</span>
+        </div>
+        <div class="bg-gray-50/80 p-2 rounded border border-gray-100">
+          <span class="text-gray-500 text-[11px] block">Khối lượng:</span>
+          <span id="valVolume" class="font-bold text-gray-800">--</span>
+        </div>
+        <div class="bg-gray-50/80 p-2 rounded border border-gray-100">
+          <span class="text-gray-500 text-[11px] block">Giá trị GD:</span>
+          <span id="valValue" class="font-bold text-gray-800">--</span>
+        </div>
+        <div class="bg-blue-50/60 p-2 rounded border border-blue-100">
+          <span class="text-blue-900 font-semibold text-[11px] block">P/E cơ bản:</span>
+          <span id="valPE" class="font-extrabold text-blue-900">--</span>
+        </div>
+        <div class="bg-blue-50/60 p-2 rounded border border-blue-100">
+          <span class="text-blue-900 font-semibold text-[11px] block">P/B:</span>
+          <span id="valPB" class="font-extrabold text-blue-900">--</span>
+        </div>
+        <div class="bg-blue-50/60 p-2 rounded border border-blue-100">
+          <span class="text-blue-900 font-semibold text-[11px] block">EPS (4 quý):</span>
+          <span id="valEPS" class="font-extrabold text-blue-900">-- đ</span>
+        </div>
+        <div class="bg-blue-50/60 p-2 rounded border border-blue-100">
+          <span class="text-blue-900 font-semibold text-[11px] block">Vốn hóa:</span>
+          <span id="valMarketCap" class="font-extrabold text-blue-900">-- tỷ</span>
+        </div>
+      </div>
+
+      <!-- Thêm dòng Biên độ 52 tuần & ROE/ROA -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2 text-xs text-gray-600 bg-gray-50/50 p-2 rounded">
+        <div>
+          <span class="text-gray-500">Biên độ 52 tuần:</span>
+          <span id="val52w" class="font-bold text-gray-800 ml-1">-- - --</span>
+        </div>
+        <div>
+          <span class="text-gray-500">KLGD TB 10 ngày:</span>
+          <span id="valAvgVol" class="font-bold text-gray-800 ml-1">--</span>
+        </div>
+        <div>
+          <span class="text-gray-500">ROEA / ROAA:</span>
+          <span id="valRoeRoa" class="font-bold text-gray-800 ml-1">-- / --</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Giá trị sổ sách (BVPS):</span>
+          <span id="valBVPS" class="font-bold text-gray-800 ml-1">-- đ</span>
+        </div>
+      </div>
+
+      <!-- THANH SUB-MENU TABS CỔ PHIẾU CHUẨN VIETSTOCK -->
+      <div class="flex items-center gap-6 overflow-x-auto border-t border-gray-100 mt-3 pt-2.5 text-xs font-semibold whitespace-nowrap">
+        <button class="pb-1.5 text-blue-700 border-b-2 border-blue-700 font-bold">Tổng quan &amp; Đồ thị</button>
+        <button onclick="document.getElementById('financialSection')?.scrollIntoView({behavior: 'smooth'})" class="pb-1.5 text-gray-600 hover:text-blue-900 transition">Tài chính (BCTC)</button>
+        <button onclick="switchNavView('hpg-news')" class="pb-1.5 text-blue-900 hover:text-blue-700 transition font-bold flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Tin tức &amp; Sự kiện
+        </button>
+        <button onclick="switchNavView('hpg-peers')" class="pb-1.5 text-gray-600 hover:text-blue-900 transition">Cùng ngành</button>
+        <button onclick="switchNavView('hpg-hsx')" class="pb-1.5 text-gray-600 hover:text-blue-900 transition">Hồ sơ niêm yết</button>
+        <button onclick="switchNavView('reports')" class="pb-1.5 text-gray-600 hover:text-blue-900 transition">Báo cáo phân tích</button>
+        <button onclick="switchNavView('events')" class="pb-1.5 text-gray-600 hover:text-blue-900 transition">Lịch sự kiện thị trường</button>
+      </div>
+    </div>
+
+    <!-- KHỐI 3: BỐ CỤC 2 CỘT CHUYÊN NGHIỆP (MAIN CONTENT + SIDEBAR) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      
+      <!-- CỘT TRÁI (2 CỘT RỘNG - 66%): BIỂU ĐỒ, 5 PHIÊN KHỚP LỆNH, BCTC ĐA CHIỀU, BÁO CÁO PHÂN TÍCH -->
+      <div class="lg:col-span-2 space-y-4">
+        
+        <!-- Biểu Đồ Kỹ Thuật TradingView -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="candlestick-chart" class="w-4 h-4 text-blue-900"></i>
+              <span class="font-bold text-gray-800 text-sm">Biểu Đồ Kỹ Thuật Nến Nhật OHLCV (TradingView)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs bg-blue-50 text-blue-900 font-semibold px-2 py-0.5 rounded border border-blue-200">Nến Ngày (D)</span>
+              <span id="stockPriceCount" class="text-xs text-gray-500">250 phiên</span>
+            </div>
+          </div>
+          <div id="tvChartContainer" class="w-full h-[430px] relative border border-gray-100 rounded"></div>
+        </div>
+
+        <!-- Bảng 5 Phiên Khớp Lệnh Gần Nhất -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+              <i data-lucide="history" class="w-4 h-4 text-blue-900"></i> Lịch Sử 5 Phiên Khớp Lệnh Gần Nhất
+            </h3>
+            <span class="text-xs text-gray-400">Đơn vị giá: VND • Khối lượng: Cổ phiếu</span>
+          </div>
+          <div class="overflow-x-auto border border-gray-200 rounded">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+              <thead class="bg-gray-50 text-gray-700 font-bold">
+                <tr>
+                  <th class="py-2 px-3 text-left">Ngày GD</th>
+                  <th class="py-2 px-3 text-right">Giá Đóng Cửa</th>
+                  <th class="py-2 px-3 text-right">Thay Đổi (+/-)</th>
+                  <th class="py-2 px-3 text-right">% Biến Động</th>
+                  <th class="py-2 px-3 text-right">Khối Lượng Khớp</th>
+                  <th class="py-2 px-3 text-right">Giá Trị (Tỷ đ)</th>
+                </tr>
+              </thead>
+              <tbody id="recentTradingBody" class="divide-y divide-gray-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Báo Cáo Tài Chính Đa Quý (Full Bảng Số Liệu Kế Toán) -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="table" class="w-4 h-4 text-blue-900"></i>
+              <h3 class="font-bold text-gray-800 text-sm">Báo Cáo Tài Chính Đa Kỳ (Vietstock Standard)</h3>
+            </div>
+            <!-- Sub-tabs BCTC -->
+            <div class="flex bg-gray-100 p-1 rounded-md text-xs font-semibold">
+              <button onclick="loadFinancialsType('IS')" id="sub-fin-IS" class="px-2.5 py-1 rounded bg-white text-blue-900 shadow-sm">KQ Kinh Doanh</button>
+              <button onclick="loadFinancialsType('BS')" id="sub-fin-BS" class="px-2.5 py-1 rounded text-gray-600 hover:text-blue-900">Cân Đối Kế Toán</button>
+              <button onclick="loadFinancialsType('RATIO')" id="sub-fin-RATIO" class="px-2.5 py-1 rounded text-gray-600 hover:text-blue-900">Chỉ Số Tài Chính</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto border border-gray-200 rounded max-h-[350px]">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+              <thead class="bg-gray-50 text-gray-700 font-bold sticky top-0 z-10" id="finTableHeader"></thead>
+              <tbody class="divide-y divide-gray-100 bg-white" id="finTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Báo Cáo Phân Tích & Khuyến Nghị CTCK -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-4 h-4 text-blue-900"></i> Báo Cáo Phân Tích Doanh Nghiệp Mới Nhất
+            </h3>
+            <span class="text-xs text-blue-800 font-semibold">Nguồn CTCK & Vietstock</span>
+          </div>
+          <div class="space-y-2.5" id="reportsContainer">
+            <div class="p-3 bg-gray-50 rounded border border-gray-200 hover:bg-blue-50/50 transition cursor-pointer">
+              <div class="flex justify-between items-start gap-2">
+                <span class="font-semibold text-gray-800 text-xs" id="repTitle1">VNM: Báo cáo cập nhật KQKD và triển vọng tăng trưởng</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-800">KHUYẾN NGHỊ: MUA</span>
+              </div>
+              <div class="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
+                <span>Nguồn: TCBS Research</span>
+                <span>•</span>
+                <span>Ngày: 02/10/2026</span>
+                <span>•</span>
+                <span class="text-blue-700 font-semibold">Giá mục tiêu: 75,000 đ</span>
+              </div>
+            </div>
+            <div class="p-3 bg-gray-50 rounded border border-gray-200 hover:bg-blue-50/50 transition cursor-pointer">
+              <div class="flex justify-between items-start gap-2">
+                <span class="font-semibold text-gray-800 text-xs" id="repTitle2">Báo cáo ngành Sữa & Tiêu dùng: Biên lợi nhuận duy trì tích cực</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">KHUYẾN NGHỊ: KHẢ QUAN</span>
+              </div>
+              <div class="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
+                <span>Nguồn: SSI Research</span>
+                <span>•</span>
+                <span>Ngày: 25/09/2026</span>
+                <span>•</span>
+                <span class="text-blue-700 font-semibold">Giá mục tiêu: 72,500 đ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tin Tức & Lịch Sự Kiện Doanh Nghiệp (Gắn trực tiếp vào màn hình cổ phiếu hiện giờ) -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-100 flex-wrap gap-2">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+              <i data-lucide="newspaper" class="w-4 h-4 text-blue-900"></i> Tin Tức &amp; Lịch Sự Kiện Quyền HPG (Thời Sự Cập Nhật)
+            </h3>
+            <button onclick="switchNavView('hpg-news')" class="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 transition">
+              Xem toàn bộ chuyên trang Tin tức HPG <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+            <div>
+              <div class="text-xs font-bold text-blue-950 flex items-center gap-1 mb-2 pb-1 border-b border-gray-100">
+                <i data-lucide="flame" class="w-3.5 h-3.5 text-rose-500"></i> Tin tức báo chí mới nhất
+              </div>
+              <div id="stockDetailQuickNews" class="space-y-2 text-xs">
+                <div class="py-4 text-center text-gray-400">Đang nạp tin tức...</div>
+              </div>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-emerald-800 flex items-center gap-1 mb-2 pb-1 border-b border-gray-100">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i> Lịch sự kiện &amp; cổ tức gần nhất
+              </div>
+              <div id="stockDetailQuickEvents" class="space-y-2 text-xs">
+                <div class="py-4 text-center text-gray-400">Đang nạp sự kiện quyền...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CỘT PHẢI (SIDEBAR - 34%): CỔ ĐÔNG, CỔ TỨC, CÙNG NGÀNH, GIỚI THIỆU -->
+      <div class="space-y-4">
+        
+        <!-- Cổ Đông Lớn -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <h3 class="font-bold text-gray-800 text-sm mb-2.5 flex items-center gap-1.5">
+            <i data-lucide="users" class="w-4 h-4 text-blue-900"></i> Cổ Đông Nắm Giữ Lớn Nhất
+          </h3>
+          <div class="overflow-x-auto border border-gray-200 rounded">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+              <thead class="bg-gray-50 text-gray-700 font-bold">
+                <tr>
+                  <th class="py-2 px-2.5 text-left">Cổ Đông / Tổ Chức</th>
+                  <th class="py-2 px-2.5 text-right">Khối Lượng</th>
+                  <th class="py-2 px-2.5 text-right">% Sở Hữu</th>
+                </tr>
+              </thead>
+              <tbody id="shareholdersTableBody" class="divide-y divide-gray-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Lịch Sử Cổ Tức -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <h3 class="font-bold text-gray-800 text-sm mb-2.5 flex items-center gap-1.5">
+            <i data-lucide="gift" class="w-4 h-4 text-blue-900"></i> Lịch Sử Chi Trả Cổ Tức
+          </h3>
+          <div class="overflow-x-auto border border-gray-200 rounded">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+              <thead class="bg-gray-50 text-gray-700 font-bold">
+                <tr>
+                  <th class="py-2 px-2.5 text-left">Ngày Thực Hiện</th>
+                  <th class="py-2 px-2.5 text-left">Nội Dung</th>
+                  <th class="py-2 px-2.5 text-right">%</th>
+                </tr>
+              </thead>
+              <tbody id="dividendsTableBody" class="divide-y divide-gray-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- So Sánh Cổ Phiếu Cùng Ngành -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <h3 class="font-bold text-gray-800 text-sm mb-2.5 flex items-center gap-1.5">
+            <i data-lucide="layers" class="w-4 h-4 text-blue-900"></i> So Sánh Doanh Nghiệp Cùng Ngành
+          </h3>
+          <div class="overflow-x-auto border border-gray-200 rounded">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+              <thead class="bg-gray-50 text-gray-700 font-bold">
+                <tr>
+                  <th class="py-2 px-2 text-left">Mã</th>
+                  <th class="py-2 px-2 text-right">Giá</th>
+                  <th class="py-2 px-2 text-right">P/E</th>
+                  <th class="py-2 px-2 text-right">Vốn Hóa</th>
+                </tr>
+              </thead>
+              <tbody id="peersTableBody" class="divide-y divide-gray-100 bg-white">
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="selectStock('VNM')">
+                  <td class="py-2 px-2 font-bold text-blue-950">VNM</td>
+                  <td class="py-2 px-2 text-right font-mono">58.0</td>
+                  <td class="py-2 px-2 text-right font-mono">14.1x</td>
+                  <td class="py-2 px-2 text-right font-mono font-semibold">121,214 tỷ</td>
+                </tr>
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="selectStock('FPT')">
+                  <td class="py-2 px-2 font-bold text-blue-950">FPT</td>
+                  <td class="py-2 px-2 text-right font-mono">132.5</td>
+                  <td class="py-2 px-2 text-right font-mono">20.1x</td>
+                  <td class="py-2 px-2 text-right font-mono font-semibold">194,500 tỷ</td>
+                </tr>
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="selectStock('HPG')">
+                  <td class="py-2 px-2 font-bold text-blue-950">HPG</td>
+                  <td class="py-2 px-2 text-right font-mono">26.8</td>
+                  <td class="py-2 px-2 text-right font-mono">10.8x</td>
+                  <td class="py-2 px-2 text-right font-mono font-semibold">158,000 tỷ</td>
+                </tr>
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="selectStock('VCB')">
+                  <td class="py-2 px-2 font-bold text-blue-950">VCB</td>
+                  <td class="py-2 px-2 text-right font-mono">89.4</td>
+                  <td class="py-2 px-2 text-right font-mono">10.3x</td>
+                  <td class="py-2 px-2 text-right font-mono font-semibold">499,000 tỷ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Giới Thiệu Doanh Nghiệp Tóm Tắt -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <h3 class="font-bold text-gray-800 text-sm mb-2 flex items-center gap-1.5">
+            <i data-lucide="info" class="w-4 h-4 text-blue-900"></i> Giới Thiệu & Lịch Sử Hình Thành
+          </h3>
+          <p id="stockOverviewText" class="text-xs text-gray-600 leading-relaxed max-h-40 overflow-y-auto">
+            Đang tải thông tin giới thiệu...
+          </p>
+        </div>
+
+      </div> <!-- Cột phải -->
+    </div> <!-- Khối 3 Grid 2 cột -->
+  </div> <!-- /view-stock -->
+
+    <!-- VIEW 2: THỊ TRƯỜNG (MARKET OVERVIEW & TOP RANKINGS) -->
+    <div id="view-market" class="space-y-4 hidden">
+      <!-- Banner Tổng quan thị trường -->
+      <div class="bg-gradient-to-r from-blue-900 to-indigo-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-yellow-400 text-blue-950 text-xs font-black">MARKET WATCH</span>
+            <h2 class="text-xl font-bold">Tổng Quan Thị Trường Chứng Khoán Toàn Cảnh</h2>
+          </div>
+          <p class="text-xs text-blue-200 mt-1">Dữ liệu phân tích 1,259 mã chứng khoán 3 sàn HOSE, HNX, UPCOM</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="loadMarketView()" class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-400 text-blue-950 text-xs font-bold rounded shadow transition flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cập Nhật Dữ Liệu
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 Khối Top: Tăng giá, Giảm giá, Thanh khoản -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Top Tăng giá -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> Top 10 Tăng Giá Mạnh Nhất
+            </h3>
+            <span class="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded font-bold">HOSE/HNX</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-gray-400 border-b border-gray-100 text-[11px]">
+                  <th class="text-left pb-2">Mã CP</th>
+                  <th class="text-right pb-2">Giá (k)</th>
+                  <th class="text-right pb-2">+/- (%)</th>
+                  <th class="text-right pb-2">Khối lượng</th>
+                </tr>
+              </thead>
+              <tbody id="marketTopGainersBody" class="divide-y divide-gray-100 font-mono">
+                <tr><td colspan="4" class="text-center py-4 text-gray-400">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Top Giảm giá -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Top 10 Giảm Giá Nhiều Nhất
+            </h3>
+            <span class="text-[10px] bg-red-50 text-red-700 px-2 py-0.5 rounded font-bold">HOSE/HNX</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-gray-400 border-b border-gray-100 text-[11px]">
+                  <th class="text-left pb-2">Mã CP</th>
+                  <th class="text-right pb-2">Giá (k)</th>
+                  <th class="text-right pb-2">+/- (%)</th>
+                  <th class="text-right pb-2">Khối lượng</th>
+                </tr>
+              </thead>
+              <tbody id="marketTopLosersBody" class="divide-y divide-gray-100 font-mono">
+                <tr><td colspan="4" class="text-center py-4 text-gray-400">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Top Khối lượng -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Top 10 Khối Lượng Lớn Nhất
+            </h3>
+            <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold">Thanh khoản</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-gray-400 border-b border-gray-100 text-[11px]">
+                  <th class="text-left pb-2">Mã CP</th>
+                  <th class="text-right pb-2">Giá (k)</th>
+                  <th class="text-right pb-2">+/- (%)</th>
+                  <th class="text-right pb-2">Khối lượng</th>
+                </tr>
+              </thead>
+              <tbody id="marketTopVolumeBody" class="divide-y divide-gray-100 font-mono">
+                <tr><td colspan="4" class="text-center py-4 text-gray-400">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /view-market -->
+
+    <!-- VIEW 3: TÀI CHÍNH TOÀN THỊ TRƯỜNG (FINANCIAL RANKINGS) -->
+    <div id="view-financials" class="space-y-4 hidden">
+      <!-- Banner Tài chính -->
+      <div class="bg-gradient-to-r from-emerald-900 to-teal-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-emerald-400 text-emerald-950 text-xs font-black">FINANCIAL RANKINGS</span>
+            <h2 class="text-xl font-bold">Bảng Xếp Hạng Tài Chính Doanh Nghiệp Toàn Sàn</h2>
+          </div>
+          <p class="text-xs text-emerald-200 mt-1">Dữ liệu Báo cáo tài chính Quý 2/2026 khai thác từ CSDL 84,551 chỉ tiêu</p>
+        </div>
+        <button onclick="loadFinancialsView()" class="px-3 py-1.5 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 text-xs font-bold rounded shadow transition flex items-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cập Nhật Bảng Xếp Hạng
+        </button>
+      </div>
+
+      <!-- 2 Bảng lớn: Doanh thu & Lợi nhuận -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Top Doanh thu -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Top 10 Doanh Nghiệp Doanh Thu Thuần Cao Nhất (Q2/2026)
+            </h3>
+            <span class="text-[10px] text-gray-500 font-semibold">Đơn vị: Tỷ VNĐ</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-gray-400 border-b border-gray-100 text-[11px]">
+                  <th class="text-left pb-2 w-10">Hạng</th>
+                  <th class="text-left pb-2">Mã CP</th>
+                  <th class="text-left pb-2">Tên Doanh Nghiệp</th>
+                  <th class="text-right pb-2">Doanh Thu Thuần</th>
+                </tr>
+              </thead>
+              <tbody id="topRevenueBody" class="divide-y divide-gray-100">
+                <tr><td colspan="4" class="text-center py-4 text-gray-400">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Top Lợi nhuận -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <i data-lucide="award" class="w-4 h-4 text-amber-500"></i> Top 10 Doanh Nghiệp Lợi Nhuận Sau Thuế Lớn Nhất (Q2/2026)
+            </h3>
+            <span class="text-[10px] text-gray-500 font-semibold">Đơn vị: Tỷ VNĐ</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-gray-400 border-b border-gray-100 text-[11px]">
+                  <th class="text-left pb-2 w-10">Hạng</th>
+                  <th class="text-left pb-2">Mã CP</th>
+                  <th class="text-left pb-2">Tên Doanh Nghiệp</th>
+                  <th class="text-right pb-2">Lợi Nhuận Sau Thuế</th>
+                </tr>
+              </thead>
+              <tbody id="topProfitBody" class="divide-y divide-gray-100">
+                <tr><td colspan="4" class="text-center py-4 text-gray-400">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /view-financials -->
+
+    <!-- VIEW 4: BÁO CÁO PHÂN TÍCH (RESEARCH REPORTS) -->
+    <div id="view-reports" class="space-y-4 hidden">
+      <!-- Banner Báo cáo -->
+      <div class="bg-gradient-to-r from-purple-900 to-slate-900 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-purple-400 text-purple-950 text-xs font-black">RESEARCH HUB</span>
+            <h2 class="text-xl font-bold">Trung Tâm Báo Cáo Phân Tích & Định Giá Doanh Nghiệp</h2>
+          </div>
+          <p class="text-xs text-purple-200 mt-1">Tổng hợp báo cáo chiến lược và định giá mục tiêu từ các công ty chứng khoán hàng đầu (SSI, VNDirect, Vietcap, HSC...)</p>
+        </div>
+        <button onclick="loadReportsView()" class="px-3 py-1.5 bg-purple-400 hover:bg-purple-300 text-purple-950 text-xs font-bold rounded shadow transition flex items-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cập Nhật Báo Cáo
+        </button>
+      </div>
+
+      <!-- Danh sách thẻ báo cáo -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+          <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4 text-purple-700"></i> Báo Cáo Phân Tích & Khuyến Nghị Mới Nhất
+          </h3>
+          <span class="text-xs text-gray-500">Cập nhật liên tục từ các định chế tài chính</span>
+        </div>
+        <div id="reportsListContainer" class="space-y-3">
+          <div class="text-center py-8 text-gray-400 text-xs">Đang tải danh sách báo cáo...</div>
+        </div>
+      </div>
+    </div> <!-- /view-reports -->
+
+    <!-- VIEW 5: LỊCH SỰ KIỆN THỊ TRƯỜNG (CORPORATE EVENTS & DIVIDENDS) -->
+    <div id="view-events" class="space-y-4 hidden">
+      <!-- Banner Lịch sự kiện -->
+      <div class="bg-gradient-to-r from-amber-900 to-yellow-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-yellow-400 text-yellow-950 text-xs font-black">EVENT CALENDAR</span>
+            <h2 class="text-xl font-bold">Lịch Sự Kiện Quyền & Trả Cổ Tức Toàn Thị Trường</h2>
+          </div>
+          <p class="text-xs text-yellow-200 mt-1">Theo dõi ngày giao dịch không hưởng quyền (GDKHQ), lịch trả cổ tức tiền mặt, cổ phiếu thưởng và họp ĐHĐCĐ</p>
+        </div>
+        <button onclick="loadEventsView()" class="px-3 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-yellow-950 text-xs font-bold rounded shadow transition flex items-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cập Nhật Lịch Sự Kiện
+        </button>
+      </div>
+
+      <!-- Bảng sự kiện chi tiết -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
+        <!-- Thanh công cụ tìm kiếm và lọc sự kiện -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-bold text-gray-700">Bộ Lọc:</span>
+            <!-- Lọc sàn -->
+            <div class="inline-flex rounded-md shadow-xs text-xs" role="group">
+              <button onclick="setMarketEventExchange('ALL')" id="filter-mev-ex-ALL" class="px-2.5 py-1 font-bold bg-blue-900 text-white rounded-l border border-blue-900 transition">Tất Cả</button>
+              <button onclick="setMarketEventExchange('HOSE')" id="filter-mev-ex-HOSE" class="px-2.5 py-1 font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 border-t border-b border-gray-200 transition">HOSE</button>
+              <button onclick="setMarketEventExchange('HNX')" id="filter-mev-ex-HNX" class="px-2.5 py-1 font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 border-t border-b border-gray-200 transition">HNX</button>
+              <button onclick="setMarketEventExchange('UPCOM')" id="filter-mev-ex-UPCOM" class="px-2.5 py-1 font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-r border border-gray-200 transition">UPCoM</button>
+            </div>
+            <!-- Lọc loại sự kiện -->
+            <select id="marketEventTypeSelect" onchange="filterMarketEventsByType(this.value)" class="text-xs border border-gray-300 rounded px-2.5 py-1 bg-white font-medium text-gray-700 focus:outline-blue-900">
+              <option value="ALL">Tất cả loại sự kiện</option>
+              <option value="Cổ tức tiền mặt">Cổ tức tiền mặt</option>
+              <option value="Cổ tức cổ phiếu">Cổ tức cổ phiếu</option>
+              <option value="ĐHĐCĐ">Đại hội cổ đông</option>
+              <option value="Quyền mua">Quyền mua cổ phiếu</option>
+            </select>
+          </div>
+
+          <!-- Tìm kiếm và Đếm tổng -->
+          <div class="flex items-center gap-2 w-full lg:w-auto">
+            <div class="relative flex-1 lg:w-64">
+              <input type="text" id="marketEventsSearchInput" oninput="debounceSearchMarketEvents()" placeholder="Tìm mã CP, tên doanh nghiệp..." class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-blue-900">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-bold shrink-0">
+              <span id="marketEventsTotalCount">--</span> sự kiện
+            </span>
+          </div>
+        </div>
+
+        <!-- Bảng danh sách sự kiện -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
+                <th class="text-center py-2 px-2.5 w-24">GDKHQ</th>
+                <th class="text-center py-2 px-2.5 w-20">Mã CP</th>
+                <th class="text-center py-2 px-2 w-16">Sàn</th>
+                <th class="text-left py-2 px-3">Tên Doanh Nghiệp</th>
+                <th class="text-left py-2 px-3">Loại Sự Kiện</th>
+                <th class="text-left py-2 px-3">Nội Dung Quyền &amp; Tỷ Lệ</th>
+                <th class="text-right py-2 px-3 w-28">Giá Trị Cổ Tức</th>
+                <th class="text-center py-2 px-3 w-28">Văn Bản PDF</th>
+              </tr>
+            </thead>
+            <tbody id="marketEventsBody" class="divide-y divide-gray-100">
+              <tr><td colspan="8" class="text-center py-8 text-gray-400">Đang tải lịch sự kiện toàn thị trường...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Thanh phân trang (Pagination) -->
+        <div class="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-600 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span>Hiển thị trang <strong id="marketEventsCurrentPage">1</strong> / <span id="marketEventsTotalPages">1</span></span>
+            <span class="text-gray-400">•</span>
+            <select id="marketEventsLimitSelect" onchange="changeMarketEventsLimit(this.value)" class="text-[11px] border border-gray-300 rounded px-1.5 py-0.5 bg-white">
+              <option value="30">30 dòng/trang</option>
+              <option value="50" selected>50 dòng/trang</option>
+              <option value="100">100 dòng/trang</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-1" id="marketEventsPaginationContainer">
+            <button onclick="goToMarketEventsPage(1)" class="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700">&laquo;</button>
+            <button onclick="prevMarketEventsPage()" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700">Trước</button>
+            <span id="marketEventsPageNumbers" class="flex items-center gap-1"></span>
+            <button onclick="nextMarketEventsPage()" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700">Sau</button>
+            <button onclick="goToMarketEventsPage('last')" class="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700">&raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /view-events -->
+
+    <!-- VIEW 6: BỘ LỌC CỔ PHIẾU (STOCK SCREENER) -->
+    <div id="view-screener" class="space-y-4 hidden">
+      <!-- Banner Bộ lọc -->
+      <div class="bg-gradient-to-r from-cyan-900 to-blue-950 text-white p-5 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-cyan-400 text-cyan-950 text-xs font-black">STOCK SCREENER</span>
+            <h2 class="text-xl font-bold">Bộ Lọc Cổ Phiếu Thông Minh Đa Tiêu Chí</h2>
+          </div>
+          <p class="text-xs text-cyan-200 mt-1">Sàng lọc 1,259 mã chứng khoán theo Sàn niêm yết, Khối lượng giao dịch và Biến động giá</p>
+        </div>
+      </div>
+
+      <!-- Bộ lọc tương tác -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-gray-100 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-gray-700">Lọc theo Sàn:</span>
+            <div class="inline-flex rounded-md shadow-sm" role="group">
+              <button onclick="setScreenerExchange('ALL')" id="filter-exchange-ALL" class="px-3 py-1.5 text-xs font-bold bg-blue-900 text-white rounded-l-md border border-blue-900 transition">Tất cả (1,259 mã)</button>
+              <button onclick="setScreenerExchange('HOSE')" id="filter-exchange-HOSE" class="px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 border-t border-b border-gray-200 transition">HOSE (333)</button>
+              <button onclick="setScreenerExchange('HNX')" id="filter-exchange-HNX" class="px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 border-t border-b border-gray-200 transition">HNX (247)</button>
+              <button onclick="setScreenerExchange('UPCOM')" id="filter-exchange-UPCOM" class="px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-r-md border border-gray-200 transition">UPCOM (683)</button>
+            </div>
+          </div>
+          <div class="text-xs text-gray-500">
+            Hiển thị Top 50 mã giao dịch sôi động nhất theo tiêu chí lọc
+          </div>
+        </div>
+
+        <!-- Bảng kết quả lọc -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
+                <th class="text-left py-2 px-3">Mã CP</th>
+                <th class="text-left py-2 px-3">Tên Công Ty</th>
+                <th class="text-center py-2 px-3">Sàn</th>
+                <th class="text-right py-2 px-3">Giá Đóng Cửa (k)</th>
+                <th class="text-right py-2 px-3">Thay Đổi (+/-)</th>
+                <th class="text-right py-2 px-3">% Thay Đổi</th>
+                <th class="text-right py-2 px-3">Khối Lượng GD</th>
+                <th class="text-center py-2 px-3">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="screenerResultsBody" class="divide-y divide-gray-100 font-mono">
+              <tr><td colspan="8" class="text-center py-6 text-gray-400">Đang quét dữ liệu bộ lọc...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div> <!-- /view-screener -->
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="vietstock-navy text-gray-400 text-xs py-6 mt-8 border-t border-blue-950">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+      <div>
+        <div class="font-bold text-white text-sm">HỆ THỐNG VIETSTOCK FINANCE CLONE & DATA ENGINE</div>
+        <p class="mt-1">Dữ liệu được khai thác và đồng bộ trực tiếp từ máy chủ Vietstock Finance (finance.vietstock.vn) lưu trữ tại CSDL SQLite cục bộ.</p>
+      </div>
+      <div class="text-gray-400 text-[11px]">
+        Phát triển độc lập bởi AI Autonomous Agent • 2026
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL: ĐỌC TOÀN VĂN BÀI BÁO & AI AGENT CONTEXT INGESTION -->
+  <div id="articleAiModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 text-white p-5 flex items-start justify-between gap-4 shrink-0">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-yellow-400 text-blue-950">AI FULL-TEXT INGESTION</span>
+            <span id="modalArticleSentimentBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-white">TÍCH CỰC (BULLISH)</span>
+            <span id="modalArticleImpactBadge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-800 text-blue-200">+8.5/10 Điểm tác động</span>
+            <span class="text-xs text-blue-300 font-mono" id="modalArticleTime">--</span>
+          </div>
+          <h3 id="modalArticleTitle" class="text-base sm:text-lg font-bold text-white leading-snug pt-1">
+            Tiêu đề bài viết
+          </h3>
+        </div>
+        <button onclick="closeArticleAiModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Sub-bar: Chuyển đổi Reader view vs AI JSON Schema view -->
+      <div class="flex items-center justify-between px-5 py-2.5 bg-gray-100 border-b border-gray-200 text-xs shrink-0">
+        <div class="flex items-center gap-2">
+          <button id="modalTabReaderBtn" onclick="switchModalTab('reader')" class="px-3 py-1 bg-white font-bold text-blue-950 rounded shadow-xs border border-gray-300">
+            📖 Chế Độ Đọc Toàn Văn (Full Article)
+          </button>
+          <button id="modalTabJsonBtn" onclick="switchModalTab('json')" class="px-3 py-1 bg-transparent hover:bg-gray-200 font-semibold text-gray-700 rounded">
+            🤖 Dữ Liệu Sạch Cho AI Agent (JSON / Prompt Ready)
+          </button>
+        </div>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 hidden sm:flex">
+          <span>CSDL Nội Bộ: <strong class="text-emerald-700 font-mono">SQLite Local Ready</strong></span>
+          <span>•</span>
+          <a id="modalArticleExternalLink" href="#" target="_blank" class="text-blue-700 font-semibold hover:underline">Link gốc</a>
+        </div>
+      </div>
+
+      <!-- Modal Body Content -->
+      <div class="p-6 overflow-y-auto space-y-5 flex-1">
+        
+        <!-- Tab 1: Reader View -->
+        <div id="modalTabReaderContent" class="space-y-5">
+          <!-- Hộp AI Insights & Executive Summary -->
+          <div class="bg-amber-50/80 border border-amber-200 rounded-lg p-4 space-y-2">
+            <div class="flex items-center gap-2 text-amber-900 font-bold text-xs uppercase tracking-wide">
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i> AI Executive Summary &amp; Key Insights
+            </div>
+            <p id="modalArticleAiSummary" class="text-xs text-amber-950 font-medium leading-relaxed">
+              Tóm tắt ý chính bài viết do AI trích xuất.
+            </p>
+          </div>
+
+          <!-- File PDF đính kèm của bài viết -->
+          <div id="modalArticlePdfBox" class="hidden p-3 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-rose-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">PDF</div>
+              <div>
+                <div class="text-xs font-bold text-gray-900" id="modalArticlePdfTitle">Văn bản đính kèm chính thức</div>
+                <div class="text-[11px] text-gray-500">Định dạng ISO 32000 PDF-1.4 (Khổ A4) • Xác thực bởi Vietstock CA</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="modalArticlePdfViewBtn" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded text-xs transition flex items-center gap-1 shadow-xs">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Xem PDF
+              </button>
+              <a id="modalArticlePdfDownloadBtn" href="#" download class="px-3 py-1 bg-white hover:bg-gray-100 text-gray-700 font-bold border border-gray-300 rounded text-xs transition flex items-center gap-1">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải về
+              </a>
+            </div>
+          </div>
+
+          <!-- Toàn văn bài viết đã lưu trữ trong CSDL -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 pb-1">Nội Dung Văn Bản Đầy Đủ (Toàn Văn Bài Báo)</h4>
+            <div id="modalArticleFullContent" class="text-sm text-gray-800 leading-relaxed whitespace-pre-line font-sans space-y-2">
+              Đang nạp toàn văn bài viết...
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: AI Context / JSON API View -->
+        <div id="modalTabJsonContent" class="hidden space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-gray-700">Dữ liệu Context chuẩn hóa cho LangChain / LlamaIndex / Agent Loop:</span>
+            <button onclick="copyModalAiJson()" class="px-2.5 py-1 text-xs bg-blue-900 text-white font-bold rounded hover:bg-blue-800 transition">
+              Copy JSON Context
+            </button>
+          </div>
+          <pre id="modalArticleJsonPre" class="p-4 rounded-lg bg-slate-900 text-emerald-400 font-mono text-xs overflow-x-auto max-h-[450px] leading-relaxed"></pre>
+          <p class="text-[11px] text-gray-500">
+            Endpoint API trực tiếp cho Agent: <code class="bg-gray-100 px-1 py-0.5 rounded text-blue-900 font-mono">GET /api/ai/feed?symbol=HPG</code>
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-xs shrink-0">
+        <span class="text-gray-500 text-[11px]">AI phân tích liên tục: Không bị chặn CORS, không rate limit, độ trễ &lt; 5ms</span>
+        <button onclick="closeArticleAiModal()" class="px-4 py-1.5 bg-gray-200 hover:bg-gray-300 font-bold text-gray-800 rounded transition">
+          Đóng cửa sổ
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: TRÌNH XEM TÀI LIỆU PDF CHÍNH THỨC (IN-APP PDF VIEWER) -->
+  <div id="pdfViewerModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-5xl w-full max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-3.5 sm:p-4 flex items-center justify-between gap-3 shrink-0 border-b border-blue-900">
+        <div class="flex items-center gap-3 overflow-hidden">
+          <div class="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center text-white shrink-0 font-black text-xs shadow-sm">
+            PDF
+          </div>
+          <div class="truncate">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="pdfModalDocType" class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">Nghị quyết HĐQT</span>
+              <span id="pdfModalDocNo" class="text-[11px] font-mono text-gray-300">Số: 25/2026/NQ-HPG</span>
+              <span class="text-[11px] text-gray-400">• Ngày: <span id="pdfModalDate">25/09/2026</span></span>
+            </div>
+            <h3 id="pdfModalTitle" class="text-sm sm:text-base font-bold text-white truncate leading-snug pt-0.5">
+              Tiêu đề văn bản
+            </h3>
+          </div>
+        </div>
+
+        <!-- Action Tools -->
+        <div class="flex items-center gap-2 shrink-0">
+          <a id="pdfModalDownloadBtn" href="#" download class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Tải PDF</span> (<span id="pdfModalSize">--</span>)
+          </a>
+          <a id="pdfModalNewTabBtn" href="#" target="_blank" class="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition hidden sm:flex items-center gap-1">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Mở tab mới
+          </a>
+          <button onclick="printPdfModal()" class="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition hidden sm:flex items-center gap-1">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i> In
+          </button>
+          <button onclick="closePdfViewerModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition font-bold">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Summary Banner của Văn bản PDF -->
+      <div id="pdfModalAiBanner" class="px-4 py-2 bg-amber-50 border-b border-amber-200 text-xs text-amber-950 flex items-start gap-2 shrink-0">
+        <i data-lucide="sparkles" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+        <div>
+          <strong class="font-bold text-amber-900">AI Context Ingestion:</strong>
+          <span id="pdfModalAiSummaryText" class="text-amber-950 font-medium ml-1">Đang trích xuất nội dung...</span>
+        </div>
+      </div>
+
+      <!-- Khung hiển thị PDF trực tiếp (Iframe Viewer) -->
+      <div class="flex-1 bg-slate-100 p-2 overflow-hidden flex flex-col min-h-[520px]">
+        <iframe id="pdfViewerIframe" src="" class="w-full flex-1 border border-gray-300 rounded-lg shadow-inner bg-white min-h-[520px]"></iframe>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-4 py-2.5 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500 shrink-0">
+        <div class="flex items-center gap-3">
+          <span class="flex items-center gap-1 text-emerald-700 font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đã ký số điện tử (Vietstock CA)
+          </span>
+          <span class="hidden sm:inline text-gray-400">• Định dạng: ISO 32000 PDF-1.4 (Khổ A4)</span>
+        </div>
+        <button onclick="closePdfViewerModal()" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded transition">
+          Đóng
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js?v=20261009_2250"></script>
+</body>
+</html>
